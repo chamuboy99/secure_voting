@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Vote in {{ poll.title }}</title>
+  <script>
+    function updateTimer() {
+      const endTime = new Date("{{ poll.end_time }}");
+      const now = new Date();
+      const diff = endTime - now;
+
+      if (diff <= 0) {
+        document.getElementById('timer').innerText = "Voting has ended.";
+        document.getElementById('vote-form').style.display = 'none';
+        return;
+      }
+
+      const mins = Math.floor(diff / 60000);
+      const secs = Math.floor((diff % 60000) / 1000);
+      document.getElementById('timer').innerText = `Time left: ${mins}m ${secs}s`;
+    }
+
+    setInterval(updateTimer, 1000);
+    window.onload = updateTimer;
+  </script>
+</head>
+<body>
+  <h2>{{ poll.title }}</h2>
+  <p id="timer">Calculating...</p>
+
+  <form method="POST" id="vote-form">
+    {% for c in poll.candidates %}
+      <input type="radio" name="candidate" value="{{ c.name }}" required>
+      <img src="{{ url_for('static', filename='candidate_images/' + c.image) }}" width="50">
+      {{ c.name }}<br>
+    {% endfor %}
+    <button type="submit">Submit Vote</button>
+  </form>
+</body>
+</html>

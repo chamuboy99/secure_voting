@@ -6,6 +6,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import json
 import base64
+from werkzeug.utils import secure_filename
 from flask import Flask, render_template, request, redirect, url_for, session
 from utils import (
     generate_rsa_keys, save_key, load_key,
@@ -108,9 +109,59 @@ def login():
         session['reg_no'] = reg_no
         session['role'] = user['role']
 
-        return redirect(url_for('vote'))
+        if user['role'] == 'admin':
+            return redirect(url_for('admin_dashboard'))
+        else:
+            return redirect(url_for('vote'))
 
     return render_template('login.html')
+
+@app.route('/admin', methods=['GET', 'POST'])
+def admin_dashboard():
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+
+    candidates_path = "candidates.json"
+    image_folder = os.path.join("static", "candidate_images")
+
+    if not os.path.exists(image_folder):
+        os.makedirs(image_folder)
+
+    # Load current candidates
+    if os.path.exists(candidates_path):
+        with open(candidates_path, 'r') as f:
+            candidates = json.load(f)
+    else:
+        candidates = []
+
+    if request.method == 'POST':
+        action = request.form['action']
+        name = request.form['name'].strip()
+
+        if action == 'add':
+            file = request.files['image']
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(image_folder, filename)
+            file.save(filepath)
+
+            # Add only if name not already present
+            if not any(c['name'] == name for c in candidates):
+                candidates.append({
+                    "name": name,
+                    "image": filename
+                })
+
+        elif action == 'remove':
+            candidates = [c for c in candidates if c['name'] != name]
+
+        with open(candidates_path, 'w') as f:
+            json.dump(candidates, f)
+
+        return redirect(url_for('admin_dashboard'))
+
+    return render_template('admin_dashboard.html', candidates=candidates)
+
+
 
 # === Vote ===
 @app.route('/vote', methods=['GET', 'POST'])
@@ -197,34 +248,3 @@ def logout():
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-
-@app.route('/admin', methods=['GET', 'POST'])
-def admin_dashboard():
-    if session.get('role') != 'admin':
-        return redirect(url_for('login'))
-
-    candidates_path = "candidates.json"
-
-    # Load current candidates
-    if os.path.exists(candidates_path):
-        with open(candidates_path, 'r') as f:
-            candidates = json.load(f)
-    else:
-        candidates = []
-
-    if request.method == 'POST':
-        action = request.form['action']
-        name = request.form['name'].strip()
-
-        if action == 'add' and name and name not in candidates:
-            candidates.append(name)
-        elif action == 'remove' and name in candidates:
-            candidates.remove(name)
-
-        with open(candidates_path, 'w') as f:
-            json.dump(candidates, f)
-
-        return redirect(url_for('admin_dashboard'))
-
-    return render_template('admin_dashboard.html', candidates=candidates)

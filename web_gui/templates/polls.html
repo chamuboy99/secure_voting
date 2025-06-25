@@ -1,0 +1,12 @@
+<!-- polls.html -->
+<h2>Available Polls</h2>
+<ul>
+  {% for poll in polls %}
+    <li>
+      <b>{{ poll.title }}</b> - ends at {{ poll.end_time }}
+      <form method="get" action="{{ url_for('vote_in_poll', poll_id=poll.id) }}">
+        <button type="submit">Vote</button>
+      </form>
+    </li>
+  {% endfor %}
+</ul>

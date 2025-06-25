@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Create Poll</title>
+</head>
+<body>
+  <h2>Create a New Poll</h2>
+  <form method="POST">
+    <label>Poll Title:</label><br>
+    <input type="text" name="title" required><br><br>
+
+    <label>End Time (YYYY-MM-DD HH:MM):</label><br>
+    <input type="datetime-local" name="end_time" required><br><br>
+
+    <button type="submit">Create Poll</button>
+  </form>
+
+  <a href="{{ url_for('admin_dashboard') }}">Back to Admin Dashboard</a>
+</body>
+</html>

@@ -7,9 +7,12 @@
 <body>
 <h2>Cast Your Vote</h2>
 <form method="POST">
-  {% for candidate in candidates %}
-    <input type="radio" name="candidate" value="{{ candidate }}" required>
-    {{ candidate }}<br>
+  {% for c in candidates %}
+    <div style="margin-bottom: 10px;">
+      <input type="radio" name="candidate" value="{{ c.name }}" required>
+      <img src="{{ url_for('static', filename='candidate_images/' + c.image) }}" width="80">
+      {{ c.name }}
+    </div>
   {% endfor %}
   <button type="submit">Submit Vote</button>
 </form>
