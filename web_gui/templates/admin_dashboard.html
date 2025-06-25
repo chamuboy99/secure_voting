@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h2>Admin Dashboard</h2>
+
+    <h3>Current Candidates</h3>
+    <ul>
+        {% for candidate in candidates %}
+            <li>{{ candidate }}</li>
+        {% endfor %}
+    </ul>
+
+    <form method="POST">
+        <input type="text" name="name" placeholder="Candidate Name" required>
+        <button type="submit" name="action" value="add">Add</button>
+        <button type="submit" name="action" value="remove">Remove</button>
+    </form>
+
+    <br><a href="/results"><button>View Results</button></a>
+    <a href="/logout"><button>Logout</button></a>
+</body>
+</html>

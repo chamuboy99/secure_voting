@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<h2>Live Results</h2>
+{% if counts %}
+    <ul style="list-style: none;">
+        {% for candidate, count in counts.items() %}
+            <li><strong>{{ candidate }}</strong>: {{ count }} vote(s)</li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No votes yet.</p>
+{% endif %}
+<a href="/"><button>Back to Home</button></a>
+</body>
+</html>

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<h2>Register as Voter</h2>
+<form method="POST">
+  First Name: <input name="fname" required><br>
+  Last Name: <input name="lname" required><br>
+  Registration Number: EG/2020/<input name="reg_suffix" maxlength="4" required><br>
+  Password: <input type="password" name="password" required><br>
+  Confirm Password: <input type="password" name="confirm" required><br>
+  <button type="submit">Register</button>
+</form>
+<a href="/login">Already registered? Login here</a><br>
+<a href="/results"><button>View Results</button></a>
+</body>
+</html>
