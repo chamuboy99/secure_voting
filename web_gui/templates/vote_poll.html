@@ -2,6 +2,7 @@
 <html>
 <head>
   <title>Vote in {{ poll.title }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <script>
     function updateTimer() {
       const endTime = new Date("{{ poll.end_time }}");
@@ -35,5 +36,9 @@
     {% endfor %}
     <button type="submit">Submit Vote</button>
   </form>
+  <a href="{{ url_for('poll_results', poll_id=poll.id) }}">
+      <button>View Results</button>
+  </a>
+  <a href="/logout"><button>Logout</button></a>
 </body>
 </html>

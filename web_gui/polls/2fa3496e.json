@@ -1,0 +1,19 @@
+{
+  "id": "2fa3496e",
+  "title": "Class Election 2025",
+  "published": true,
+  "ended": false,
+  "end_time": "2025-06-26T12:50:00",
+  "candidates": [
+    {
+      "name": "Chamu",
+      "image": "chamuboy.png",
+      "votes": 1
+    },
+    {
+      "name": "Chamuboy",
+      "image": "chamuboy.png",
+      "votes": 1
+    }
+  ]
+}

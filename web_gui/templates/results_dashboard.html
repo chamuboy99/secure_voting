@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>All Poll Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h2>Published Polls - View Results</h2>
+    <ul style="list-style: none;">
+        {% for poll in polls %}
+        <li>
+            <strong>{{ poll.title }}</strong> – ends at {{ poll.end_time }}
+            <a href="{{ url_for('poll_results', poll_id=poll.id) }}">
+                <button>View Results</button>
+            </a>
+        </li>
+        {% else %}
+        <li>No published polls available.</li>
+        {% endfor %}
+    </ul>
+    <a href="{{ url_for('admin_dashboard') }}"><button>Back to Admin</button></a>
+</body>
+</html>

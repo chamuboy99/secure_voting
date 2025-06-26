@@ -1,0 +1,19 @@
+{
+  "id": "0bbf80d8",
+  "title": "Elec22",
+  "published": true,
+  "ended": false,
+  "end_time": "2025-06-26T12:45:00",
+  "candidates": [
+    {
+      "name": "Chamuditha Tennakoon",
+      "image": "chamuboy.png",
+      "votes": 1
+    },
+    {
+      "name": "Chamuboy",
+      "image": "sample.jpg",
+      "votes": 0
+    }
+  ]
+}

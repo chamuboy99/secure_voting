@@ -17,6 +17,25 @@ from utils import (
 from werkzeug.security import generate_password_hash, check_password_hash
 from collections import Counter
 
+import uuid
+from datetime import datetime, timedelta
+
+POLL_DIR = "./polls"
+
+def load_poll(poll_id):
+    path = os.path.join(POLL_DIR, f"{poll_id}.json")
+    with open(path, 'r') as f:
+        return json.load(f)
+
+def save_poll(poll):
+    path = os.path.join(POLL_DIR, f"{poll['id']}.json")
+    with open(path, 'w') as f:
+        json.dump(poll, f, indent=2)
+
+def list_polls():
+    return [f.split(".")[0] for f in os.listdir(POLL_DIR) if f.endswith(".json")]
+
+
 app = Flask(__name__)
 app.secret_key = 'secure-voting-secret'
 
@@ -112,56 +131,177 @@ def login():
         if user['role'] == 'admin':
             return redirect(url_for('admin_dashboard'))
         else:
-            return redirect(url_for('vote'))
+            return redirect(url_for('available_polls'))
 
     return render_template('login.html')
 
-@app.route('/admin', methods=['GET', 'POST'])
+# === Admin ===
+@app.route('/admin')
 def admin_dashboard():
     if session.get('role') != 'admin':
         return redirect(url_for('login'))
 
-    candidates_path = "candidates.json"
-    image_folder = os.path.join("static", "candidate_images")
+    return render_template('admin_dashboard.html')
 
-    if not os.path.exists(image_folder):
-        os.makedirs(image_folder)
 
-    # Load current candidates
-    if os.path.exists(candidates_path):
-        with open(candidates_path, 'r') as f:
-            candidates = json.load(f)
-    else:
-        candidates = []
+
+@app.route('/admin/create_poll', methods=['GET', 'POST'])
+def create_poll():
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        title = request.form['title']
+        end_time_str = request.form['end_time']
+        try:
+            end_time = datetime.strptime(end_time_str, '%Y-%m-%dT%H:%M')
+        except ValueError:
+            end_time = datetime.now() + timedelta(days=1)
+
+        poll_id = uuid.uuid4().hex[:8]  # random short ID
+        poll = {
+            "id": poll_id,
+            "title": title,
+            "published": False,
+            "ended": False,
+            "end_time": end_time.isoformat(),
+            "candidates": []
+        }
+        save_poll(poll)
+        return redirect(url_for('edit_poll', poll_id=poll_id))
+
+    return render_template('create_poll.html')
+
+@app.route('/polls')
+def available_polls():
+    if 'reg_no' not in session:
+        return redirect(url_for('login'))
+
+    reg_no = session['reg_no']
+    available = []
+
+    for pid in list_polls():
+        poll = load_poll(pid)
+        if poll['published'] and not poll['ended']:
+            # Check time
+            if datetime.now() > datetime.fromisoformat(poll['end_time']):
+                poll['ended'] = True
+                save_poll(poll)
+                continue
+            available.append(poll)
+
+    return render_template('polls.html', polls=available)
+
+
+@app.route('/admin/edit_poll/<poll_id>', methods=['GET', 'POST'])
+def edit_poll(poll_id):
+    poll = load_poll(poll_id)
 
     if request.method == 'POST':
         action = request.form['action']
-        name = request.form['name'].strip()
+        if action == 'add_candidate':
+            name = request.form['name']
+            image_file = request.files['image']
+            image_name = secure_filename(image_file.filename)
+            image_file.save(os.path.join("static", "candidate_images", image_name))
 
-        if action == 'add':
-            file = request.files['image']
-            filename = secure_filename(file.filename)
-            filepath = os.path.join(image_folder, filename)
-            file.save(filepath)
+            poll['candidates'].append({
+                "name": name,
+                "image": image_name,
+                "votes": 0
+            })
 
-            # Add only if name not already present
-            if not any(c['name'] == name for c in candidates):
-                candidates.append({
-                    "name": name,
-                    "image": filename
-                })
+        elif action == 'remove_candidate':
+            name = request.form['name']
+            poll['candidates'] = [c for c in poll['candidates'] if c['name'] != name]
 
-        elif action == 'remove':
-            candidates = [c for c in candidates if c['name'] != name]
+        elif action == 'publish':
+            if len(poll['candidates']) >= 2:
+                poll['published'] = True
 
-        with open(candidates_path, 'w') as f:
-            json.dump(candidates, f)
+        elif action == 'terminate':
+            poll['ended'] = True
 
-        return redirect(url_for('admin_dashboard'))
+        elif action == 'delete_poll':
+            os.remove(os.path.join(POLL_DIR, f"{poll_id}.json"))
+            return redirect(url_for('admin_dashboard'))
 
-    return render_template('admin_dashboard.html', candidates=candidates)
+        save_poll(poll)
 
+    return render_template('edit_poll.html', poll=poll)
 
+@app.route('/poll/<poll_id>', methods=['GET', 'POST'])
+def vote_in_poll(poll_id):
+    poll = load_poll(poll_id)
+
+    if not poll['published'] or poll['ended']:
+        return "Poll is not active.", 403
+
+    if datetime.now() > datetime.fromisoformat(poll['end_time']):
+        poll['ended'] = True
+        save_poll(poll)
+        return "Poll has ended.", 403
+
+    if request.method == 'POST':
+        selected = request.form.get('candidate')  # ✅ Use .get to avoid key errors
+
+        if not selected:
+            return "❌ Please select a candidate before voting.", 400
+
+        reg_no = session.get('reg_no')
+        if not reg_no:
+            return redirect(url_for('login'))
+
+        filename_safe_reg = reg_no.replace("/", "_")
+        priv_path = os.path.join(KEYS_DIR, f"{filename_safe_reg}_private.pem")
+
+        if not os.path.exists(priv_path):
+            return "Private key missing for voter."
+
+        # Check for double voting
+        voted_path = os.path.join(VOTES_DIR, poll_id, f"{poll_id}_voted.txt")
+        os.makedirs(os.path.dirname(voted_path), exist_ok=True)
+        if os.path.exists(voted_path):
+            with open(voted_path, 'r') as f:
+                if reg_no in f.read():
+                    return "❌ You have already voted."
+
+        # Secure vote
+        aes_key = generate_aes_key()
+        enc_vote = aes_encrypt(selected.encode(), aes_key)
+        enc_key = rsa_encrypt(aes_key, server_pub)
+
+        voter_priv = load_key(priv_path, is_private=True)
+
+        digest = hashes.Hash(hashes.SHA256())
+        digest.update(selected.encode())
+        vote_hash = digest.finalize()
+
+        signature = sign_message(vote_hash, voter_priv)
+
+        payload = {
+            "encrypted_vote": base64.b64encode(enc_vote).decode(),
+            "encrypted_key": base64.b64encode(enc_key).decode(),
+            "signature": base64.b64encode(signature).decode()
+        }
+
+        vote_path = os.path.join(VOTES_DIR, poll_id, f"{filename_safe_reg}_vote.json")
+        with open(vote_path, 'w') as f:
+            json.dump(payload, f)
+
+        with open(voted_path, 'a') as f:
+            f.write(reg_no + "\n")
+
+        # ✅ Live update the vote count
+        for c in poll['candidates']:
+            if c['name'] == selected:
+                c['votes'] = c.get('votes', 0) + 1
+                break
+        save_poll(poll)
+
+        return redirect(url_for('poll_results', poll_id=poll_id))
+
+    return render_template('vote_poll.html', poll=poll)
 
 # === Vote ===
 @app.route('/vote', methods=['GET', 'POST'])
@@ -221,25 +361,60 @@ def vote():
     return render_template('vote.html', candidates=candidates)
 
 # === Results ===
-@app.route('/results')
-def results():
+@app.route('/results/<poll_id>')
+def poll_results(poll_id):
+    poll = load_poll(poll_id)
+    poll_vote_dir = os.path.join(VOTES_DIR, poll_id)
+
+    # Auto-end poll if time's up
+    if not poll['ended'] and datetime.now() > datetime.fromisoformat(poll['end_time']):
+        poll['ended'] = True
+        save_poll(poll)
+
+    if not os.path.exists(poll_vote_dir):
+        return render_template("results.html", poll=poll, counts={})
+
     all_votes = []
 
-    for file in os.listdir(VOTES_DIR):
+    for file in os.listdir(poll_vote_dir):
         if file.endswith("_vote.json"):
-            with open(os.path.join(VOTES_DIR, file), 'r') as f:
+            with open(os.path.join(poll_vote_dir, file), 'r') as f:
                 data = json.load(f)
 
-            enc_vote = base64.b64decode(data['encrypted_vote'])
-            enc_key = base64.b64decode(data['encrypted_key'])
+            try:
+                enc_vote = base64.b64decode(data['encrypted_vote'])
+                enc_key = base64.b64decode(data['encrypted_key'])
 
-            aes_key = rsa_decrypt(enc_key, server_priv)
-            vote_plain = aes_decrypt(enc_vote, aes_key).decode()
+                aes_key = rsa_decrypt(enc_key, server_priv)
+                vote_plain = aes_decrypt(enc_vote, aes_key).decode()
 
-            all_votes.append(vote_plain)
+                all_votes.append(vote_plain)
+            except Exception as e:
+                print(f"[Error decrypting vote from {file}]: {e}")
+                continue
 
-    counts = Counter(all_votes)
-    return render_template('results.html', counts=counts)
+    # Tally votes securely
+    vote_counts = {c['name']: 0 for c in poll['candidates']}
+    for vote in all_votes:
+        if vote in vote_counts:
+            vote_counts[vote] += 1
+
+    return render_template("results.html", poll=poll, counts=vote_counts)
+
+@app.route('/results')
+def results_dashboard():
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+
+    all_polls = []
+    for fname in os.listdir(POLL_DIR):
+        if fname.endswith(".json"):
+            with open(os.path.join(POLL_DIR, fname), 'r') as f:
+                poll = json.load(f)
+                if poll.get("published"):
+                    all_polls.append(poll)
+
+    return render_template('results_dashboard.html', polls=all_polls)
 
 @app.route('/logout')
 def logout():

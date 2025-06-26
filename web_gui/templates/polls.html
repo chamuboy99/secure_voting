@@ -1,12 +1,32 @@
 <!-- polls.html -->
-<h2>Available Polls</h2>
-<ul>
-  {% for poll in polls %}
-    <li>
-      <b>{{ poll.title }}</b> - ends at {{ poll.end_time }}
-      <form method="get" action="{{ url_for('vote_in_poll', poll_id=poll.id) }}">
-        <button type="submit">Vote</button>
-      </form>
-    </li>
-  {% endfor %}
-</ul>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    {% if polls %}
+        <h2>Available Polls</h2>
+        <ul>
+            {% for poll in polls %}
+                <li>
+                    <b>{{ poll.title }}</b> – ends at {{ poll.end_time }}
+                    <form method="get" action="{{ url_for('vote_in_poll', poll_id=poll.id) }}" style="display:inline;">
+                        <button type="submit">Vote</button>
+                    </form>
+                    <form method="get" action="{{ url_for('poll_results', poll_id=poll.id) }}" style="display:inline;">
+                        <button type="submit">View Results</button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No active polls available.</p>
+    {% endif %}
+    
+    <a href="/logout"><button>Logout</button></a>
+
+</body>
+</html>
+
