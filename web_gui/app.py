@@ -20,7 +20,7 @@ from collections import Counter
 import uuid
 from datetime import datetime, timedelta
 
-POLL_DIR = "./polls"
+POLL_DIR = "../polls"
 
 def load_poll(poll_id):
     path = os.path.join(POLL_DIR, f"{poll_id}.json")
@@ -43,7 +43,6 @@ app.secret_key = 'secure-voting-secret'
 VOTER_DB = "voter_db.json"
 KEYS_DIR = "../keys/"
 VOTES_DIR = "../votes/"
-VOTER_LOG = "../voted_voters.txt"
 SERVER_PRIV_KEY = "../keys/server_private.pem"
 SERVER_PUB_KEY = "../keys/server_public.pem"
 
@@ -54,9 +53,6 @@ os.makedirs(VOTES_DIR, exist_ok=True)
 if not os.path.exists(VOTER_DB) or os.path.getsize(VOTER_DB) == 0:
     with open(VOTER_DB, "w") as f:
         json.dump([], f)
-
-if not os.path.exists(VOTER_LOG):
-    open(VOTER_LOG, 'a').close()
 
 server_priv = load_key(SERVER_PRIV_KEY, is_private=True)
 server_pub = load_key(SERVER_PUB_KEY)
@@ -143,8 +139,6 @@ def admin_dashboard():
 
     return render_template('admin_dashboard.html')
 
-
-
 @app.route('/admin/create_poll', methods=['GET', 'POST'])
 def create_poll():
     if session.get('role') != 'admin':
@@ -199,28 +193,44 @@ def edit_poll(poll_id):
 
     if request.method == 'POST':
         action = request.form['action']
-        if action == 'add_candidate':
+
+        if action == 'add_candidate' and not poll['published']:
             name = request.form['name']
             image_file = request.files['image']
             image_name = secure_filename(image_file.filename)
             image_file.save(os.path.join("static", "candidate_images", image_name))
-
             poll['candidates'].append({
                 "name": name,
                 "image": image_name,
                 "votes": 0
             })
 
-        elif action == 'remove_candidate':
+        elif action == 'remove_candidate' and not poll['published']:
             name = request.form['name']
             poll['candidates'] = [c for c in poll['candidates'] if c['name'] != name]
+
+        elif action == 'update_end_time' and not poll['published']:
+            new_time = request.form['end_time']
+            try:
+                dt = datetime.strptime(new_time, '%Y-%m-%dT%H:%M')
+                poll['end_time'] = dt.isoformat()
+            except ValueError:
+                pass
 
         elif action == 'publish':
             if len(poll['candidates']) >= 2:
                 poll['published'] = True
+                # ✅ Reset ended ONLY on publish
+                end_dt = datetime.fromisoformat(poll['end_time'])
+                if end_dt > datetime.now():
+                    poll['ended'] = False
+
+        elif action == 'unpublish':
+            poll['published'] = False
 
         elif action == 'terminate':
             poll['ended'] = True
+            poll['end_time'] = datetime.now().isoformat()
 
         elif action == 'delete_poll':
             os.remove(os.path.join(POLL_DIR, f"{poll_id}.json"))
@@ -229,6 +239,7 @@ def edit_poll(poll_id):
         save_poll(poll)
 
     return render_template('edit_poll.html', poll=poll)
+
 
 @app.route('/poll/<poll_id>', methods=['GET', 'POST'])
 def vote_in_poll(poll_id):
@@ -316,17 +327,6 @@ def vote():
     if not os.path.exists(priv_path):
         return "Voter keys not found."
 
-    #===voter_priv = load_key(priv_path, is_private=True)===
-
-    # Create the log file if it doesn't exist
-    if not os.path.exists(VOTER_LOG):
-        with open(VOTER_LOG, 'w') as f:
-            pass  # Just create empty file
-
-    with open(VOTER_LOG, 'r') as f:
-        if reg_no in f.read():
-            return "❌ You have already voted."
-
     # Load candidates
     with open("candidates.json", "r") as f:
         candidates = json.load(f)
@@ -352,9 +352,6 @@ def vote():
         filename_safe_reg = reg_no.replace("/", "_")
         with open(os.path.join(VOTES_DIR, f"{filename_safe_reg}_vote.json"), 'w') as f:
             json.dump(payload, f)
-
-        with open(VOTER_LOG, 'a') as f:
-            f.write(reg_no + "\n")
 
         return redirect(url_for('results'))
 
@@ -411,8 +408,7 @@ def results_dashboard():
         if fname.endswith(".json"):
             with open(os.path.join(POLL_DIR, fname), 'r') as f:
                 poll = json.load(f)
-                if poll.get("published"):
-                    all_polls.append(poll)
+                all_polls.append(poll)
 
     return render_template('results_dashboard.html', polls=all_polls)
 

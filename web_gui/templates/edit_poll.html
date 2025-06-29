@@ -2,6 +2,7 @@
 <html>
 <head>
   <title>Edit Poll</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
   <h2>Edit Poll: {{ poll.title }}</h2>
@@ -11,13 +12,22 @@
   <p><strong>Published:</strong> {{ poll.published }}</p>
   <p><strong>Ended:</strong> {{ poll.ended }}</p>
 
-  <h3>Add Candidate</h3>
-  <form method="POST" enctype="multipart/form-data">
-    <input type="hidden" name="action" value="add_candidate">
-    Name: <input type="text" name="name" required><br>
-    Image: <input type="file" name="image" required><br>
-    <button type="submit">Add Candidate</button>
-  </form>
+  {% if not poll.published %}
+    <h3>Update End Time</h3>
+    <form method="POST">
+      <input type="hidden" name="action" value="update_end_time">
+      <input type="datetime-local" name="end_time" required>
+      <button type="submit">Update End Time</button>
+    </form>
+
+    <h3>Add Candidate</h3>
+    <form method="POST" enctype="multipart/form-data">
+      <input type="hidden" name="action" value="add_candidate">
+      Name: <input type="text" name="name" required><br>
+      Image: <input type="file" name="image" required><br>
+      <button type="submit">Add Candidate</button>
+    </form>
+  {% endif %}
 
   <h3>Current Candidates</h3>
   <ul>
@@ -25,24 +35,36 @@
       <li>
         <img src="{{ url_for('static', filename='candidate_images/' + c.image) }}" width="50">
         {{ c.name }}
+        {% if not poll.published %}
         <form method="POST" style="display:inline;">
           <input type="hidden" name="action" value="remove_candidate">
           <input type="hidden" name="name" value="{{ c.name }}">
           <button type="submit">Remove</button>
         </form>
+        {% endif %}
       </li>
     {% endfor %}
   </ul>
 
   <h3>Poll Actions</h3>
+
+  {% if not poll.published %}
   <form method="POST">
     <input type="hidden" name="action" value="publish">
     <button type="submit">Publish Poll</button>
   </form>
+  {% else %}
+  <form method="POST">
+    <input type="hidden" name="action" value="unpublish">
+    <button type="submit">Unpublish Poll</button>
+  </form>
+  {% endif %}
+
   <form method="POST">
     <input type="hidden" name="action" value="terminate">
     <button type="submit">Terminate Poll</button>
   </form>
+
   <form method="POST">
     <input type="hidden" name="action" value="delete_poll">
     <button type="submit" style="color:red;">Delete Poll</button>

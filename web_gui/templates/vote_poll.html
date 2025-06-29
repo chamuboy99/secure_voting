@@ -36,9 +36,7 @@
     {% endfor %}
     <button type="submit">Submit Vote</button>
   </form>
-  <a href="{{ url_for('poll_results', poll_id=poll.id) }}">
-      <button>View Results</button>
-  </a>
+  <a href="{{ url_for('available_polls') }}"><button>Back to All Poll Results</button></a>
   <a href="/logout"><button>Logout</button></a>
 </body>
 </html>

@@ -9,10 +9,15 @@
     <ul style="list-style: none;">
         {% for poll in polls %}
         <li>
-            <strong>{{ poll.title }}</strong> – ends at {{ poll.end_time }}
-            <a href="{{ url_for('poll_results', poll_id=poll.id) }}">
-                <button>View Results</button>
-            </a>
+            <b>{{ poll.title }}</b>
+            <br>Status: {{ 'Published' if poll.published else 'Unpublished' }}
+            <br>Ends: {{ poll.end_time }}
+            <form method="get" action="{{ url_for('poll_results', poll_id=poll.id) }}">
+                <button type="submit">View Results</button>
+            </form>
+            <form method="get" action="{{ url_for('edit_poll', poll_id=poll.id) }}">
+                <button>Edit Poll</button>
+            </form>
         </li>
         {% else %}
         <li>No published polls available.</li>

@@ -20,6 +20,10 @@
         <p>No candidates found.</p>
     {% endif %}
 
-    <a href="{{ url_for('results_dashboard') }}"><button>Back to All Poll Results</button></a>
+    {% if session.get('role') == 'admin' %}
+        <a href="{{ url_for('results_dashboard') }}"><button>Back to All Poll Results</button></a>
+    {% else %}
+        <a href="{{ url_for('available_polls') }}"><button>Back to All Poll Results</button></a>
+    {% endif %}
 </body>
 </html>
