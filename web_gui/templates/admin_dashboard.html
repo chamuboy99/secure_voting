@@ -8,7 +8,9 @@
     <h2>Admin Dashboard</h2>
 
     <br><a href="/results"><button>View Results</button></a>
-    <a href="/logout"><button>Logout</button></a>
+    <a href="/logout" onclick="return confirm('Are you sure you want to logout?')">
+        <button>Logout</button>
+    </a>
     <a href="/admin/create_poll"><button>Create Poll</button></a>
 </body>
 </html>

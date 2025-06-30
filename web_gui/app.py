@@ -6,8 +6,9 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import json
 import base64
+import re
 from werkzeug.utils import secure_filename
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask,flash, render_template, request, redirect, url_for, session
 from utils import (
     generate_rsa_keys, save_key, load_key,
     generate_aes_key, aes_encrypt, aes_decrypt,
@@ -72,18 +73,29 @@ def register():
         confirm = request.form['confirm']
 
         if not suffix.isdigit() or len(suffix) != 4:
-            return "Registration number must be 4 digits (e.g., 1234)."
+            flash("Registration number must be 4 digits (e.g., 1234).")
+            return redirect(url_for('register'))
 
         reg_no = f"EG/2020/{suffix}"
 
+        # Password strength validation
+        if len(password) < 8 or \
+           not re.search(r'[A-Z]', password) or \
+           not re.search(r'[a-z]', password) or \
+           not re.search(r'[^A-Za-z0-9]', password):
+            flash("Password must be at least 8 characters with 1 uppercase, 1 lowercase, and 1 special character.")
+            return redirect(url_for('register'))
+
         if password != confirm:
-            return "Passwords do not match."
+            flash("Passwords do not match.")
+            return redirect(url_for('register'))
 
         with open(VOTER_DB, 'r') as f:
             voters = json.load(f)
 
         if any(v['reg_no'] == reg_no for v in voters):
-            return "Voter already registered."
+            flash("Voter already registered.")
+            return redirect(url_for('register'))
 
         # Generate and save keys
         priv, pub = generate_rsa_keys()
@@ -102,6 +114,7 @@ def register():
         with open(VOTER_DB, 'w') as f:
             json.dump(voters, f)
 
+        flash("Registration successful. Please log in.")
         return redirect(url_for('login'))
 
     return render_template('register.html')
@@ -118,8 +131,13 @@ def login():
 
         user = next((v for v in voters if v['reg_no'] == reg_no), None)
 
-        if not user or not check_password_hash(user['password_hash'], password):
-            return "Invalid credentials."
+        if not user:
+            flash("User not registered.")
+            return redirect(url_for('login'))
+
+        if not check_password_hash(user['password_hash'], password):
+            flash("Incorrect password.")
+            return redirect(url_for('login'))
 
         session['reg_no'] = reg_no
         session['role'] = user['role']
@@ -149,8 +167,12 @@ def create_poll():
         end_time_str = request.form['end_time']
         try:
             end_time = datetime.strptime(end_time_str, '%Y-%m-%dT%H:%M')
+            if end_time <= datetime.now():
+                flash("End time must be in the future.")
+                return render_template('create_poll.html')
         except ValueError:
-            end_time = datetime.now() + timedelta(days=1)
+            flash("Invalid date format.")
+            return render_template('create_poll.html')
 
         poll_id = uuid.uuid4().hex[:8]  # random short ID
         poll = {
@@ -213,9 +235,12 @@ def edit_poll(poll_id):
             new_time = request.form['end_time']
             try:
                 dt = datetime.strptime(new_time, '%Y-%m-%dT%H:%M')
-                poll['end_time'] = dt.isoformat()
+                if dt <= datetime.now():
+                    flash("End time must be in the future.")
+                else:
+                    poll['end_time'] = dt.isoformat()
             except ValueError:
-                pass
+                flash("Invalid date format.")
 
         elif action == 'publish':
             if len(poll['candidates']) >= 2:
@@ -224,6 +249,8 @@ def edit_poll(poll_id):
                 end_dt = datetime.fromisoformat(poll['end_time'])
                 if end_dt > datetime.now():
                     poll['ended'] = False
+            else:
+                flash("Poll must have at least 2 candidates.")
 
         elif action == 'unpublish':
             poll['published'] = False
@@ -275,7 +302,8 @@ def vote_in_poll(poll_id):
         if os.path.exists(voted_path):
             with open(voted_path, 'r') as f:
                 if reg_no in f.read():
-                    return "❌ You have already voted."
+                    flash("You have already voted.")
+                    return redirect(url_for('available_polls'))
 
         # Secure vote
         aes_key = generate_aes_key()

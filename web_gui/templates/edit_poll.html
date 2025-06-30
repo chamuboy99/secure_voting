@@ -49,27 +49,40 @@
   <h3>Poll Actions</h3>
 
   {% if not poll.published %}
-  <form method="POST">
+  <!-- Publish Poll with confirmation -->
+  <form method="POST" onsubmit="return confirm('Are you sure you want to publish this poll?')">
     <input type="hidden" name="action" value="publish">
     <button type="submit">Publish Poll</button>
   </form>
   {% else %}
-  <form method="POST">
+  <!-- Unpublish Poll with confirmation -->
+  <form method="POST" onsubmit="return confirm('Are you sure you want to unpublish this poll?')">
     <input type="hidden" name="action" value="unpublish">
     <button type="submit">Unpublish Poll</button>
   </form>
   {% endif %}
 
-  <form method="POST">
+  <!-- Terminate Poll with confirmation -->
+  <form method="POST" onsubmit="return confirm('Are you sure you want to terminate this poll? This will stop voting immediately.')">
     <input type="hidden" name="action" value="terminate">
     <button type="submit">Terminate Poll</button>
   </form>
 
-  <form method="POST">
+  <!-- Delete Poll with confirmation -->
+  <form method="POST" onsubmit="return confirm('Are you absolutely sure you want to DELETE this poll? This cannot be undone.')">
     <input type="hidden" name="action" value="delete_poll">
     <button type="submit" style="color:red;">Delete Poll</button>
   </form>
 
+
   <br><a href="{{ url_for('admin_dashboard') }}">Back to Admin</a>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <script>
+        alert("{{ messages[0] }}");
+      </script>
+    {% endif %}
+  {% endwith %}
 </body>
 </html>

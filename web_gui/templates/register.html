@@ -15,5 +15,13 @@
   <button type="submit">Register</button>
 </form>
 <a href="/login">Already registered? Login here</a><br>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <script>
+      alert("{{ messages[0] }}");
+    </script>
+  {% endif %}
+{% endwith %}
+
 </body>
 </html>

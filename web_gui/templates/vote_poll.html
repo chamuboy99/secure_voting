@@ -37,6 +37,18 @@
     <button type="submit">Submit Vote</button>
   </form>
   <a href="{{ url_for('available_polls') }}"><button>Back to All Poll Results</button></a>
-  <a href="/logout"><button>Logout</button></a>
+  <a href="/logout" onclick="return confirm('Are you sure you want to logout?')">
+    <button>Logout</button>
+  </a>
+
+  
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <script>
+        alert("{{ messages[0] }}");
+      </script>
+    {% endif %}
+  {% endwith %}
+
 </body>
 </html>
