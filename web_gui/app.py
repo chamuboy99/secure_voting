@@ -220,16 +220,19 @@ def edit_poll(poll_id):
             name = request.form['name']
             image_file = request.files['image']
             image_name = secure_filename(image_file.filename)
-            image_file.save(os.path.join("static", "candidate_images", image_name))
+            image_path = os.path.join("static", "candidate_images", image_name)
+            image_file.save(image_path)
             poll['candidates'].append({
                 "name": name,
                 "image": image_name,
                 "votes": 0
             })
+            flash(f"Candidate added successfully.")
 
         elif action == 'remove_candidate' and not poll['published']:
             name = request.form['name']
             poll['candidates'] = [c for c in poll['candidates'] if c['name'] != name]
+            flash(f"Candidate removed.")
 
         elif action == 'update_end_time' and not poll['published']:
             new_time = request.form['end_time']
@@ -239,31 +242,36 @@ def edit_poll(poll_id):
                     flash("End time must be in the future.")
                 else:
                     poll['end_time'] = dt.isoformat()
+                    flash("End time updated.")
             except ValueError:
                 flash("Invalid date format.")
 
         elif action == 'publish':
             if len(poll['candidates']) >= 2:
                 poll['published'] = True
-                # ✅ Reset ended ONLY on publish
                 end_dt = datetime.fromisoformat(poll['end_time'])
                 if end_dt > datetime.now():
                     poll['ended'] = False
+                flash("Poll published.")
             else:
-                flash("Poll must have at least 2 candidates.")
+                flash("Poll must have at least 2 candidates to publish.")
 
         elif action == 'unpublish':
             poll['published'] = False
+            flash("Poll unpublished.")
 
         elif action == 'terminate':
             poll['ended'] = True
             poll['end_time'] = datetime.now().isoformat()
+            flash("Poll terminated.")
 
         elif action == 'delete_poll':
             os.remove(os.path.join(POLL_DIR, f"{poll_id}.json"))
+            flash("Poll deleted.")
             return redirect(url_for('admin_dashboard'))
 
         save_poll(poll)
+        return redirect(url_for('edit_poll', poll_id=poll_id))  # ✅ PRG redirect
 
     return render_template('edit_poll.html', poll=poll)
 

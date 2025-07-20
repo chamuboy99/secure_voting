@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
   <title>Create Poll</title>
 </head>
 <body>
-  <h2>Create a New Poll</h2>
   <form method="POST">
+    <h2>Create a New Poll</h2>
     <label>Poll Title:</label><br>
     <input type="text" name="title" required><br><br>
 
@@ -14,9 +14,9 @@
     <input type="datetime-local" name="end_time" required><br><br>
 
     <button type="submit">Create Poll</button>
+    <a href="{{ url_for('admin_dashboard') }}">Back to Admin Dashboard</a>
   </form>
 
-  <a href="{{ url_for('admin_dashboard') }}">Back to Admin Dashboard</a>
   {% with messages = get_flashed_messages() %}
     {% if messages %}
       <script>

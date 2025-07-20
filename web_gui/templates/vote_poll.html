@@ -2,7 +2,7 @@
 <html>
 <head>
   <title>Vote in {{ poll.title }}</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='voter.css') }}">
   <script>
     function updateTimer() {
       const endTime = new Date("{{ poll.end_time }}");
@@ -25,30 +25,37 @@
   </script>
 </head>
 <body>
-  <h2>{{ poll.title }}</h2>
-  <p id="timer">Calculating...</p>
+  <div class="vote-container">
+    <h2>{{ poll.title }}</h2>
+    <p id="timer">Calculating...</p>
 
-  <form method="POST" id="vote-form">
-    {% for c in poll.candidates %}
-      <input type="radio" name="candidate" value="{{ c.name }}" required>
-      <img src="{{ url_for('static', filename='candidate_images/' + c.image) }}" width="50">
-      {{ c.name }}<br>
-    {% endfor %}
-    <button type="submit">Submit Vote</button>
-  </form>
-  <a href="{{ url_for('available_polls') }}"><button>Back to All Poll Results</button></a>
-  <a href="/logout" onclick="return confirm('Are you sure you want to logout?')">
-    <button>Logout</button>
-  </a>
+    <form method="POST" id="vote-form">
+      {% for c in poll.candidates %}
+        <label>
+          <input type="radio" name="candidate" value="{{ c.name }}" required>
+          <img src="{{ url_for('static', filename='candidate_images/' + c.image) }}" alt="{{ c.name }}">
+          {{ c.name }}
+        </label>
+      {% endfor %}
+      <button type="submit">Submit Vote</button>
+    </form>
 
-  
-  {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      <script>
-        alert("{{ messages[0] }}");
-      </script>
-    {% endif %}
-  {% endwith %}
+    <div class="nav-buttons">
+      <a href="{{ url_for('available_polls') }}">
+        <button>Back to All Poll Results</button>
+      </a>
+      <a href="/logout" class="logout-btn" onclick="return confirm('Are you sure you want to logout?')">
+        <button>Logout</button>
+      </a>
+    </div>
 
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <script>
+          alert("{{ messages[0] }}");
+        </script>
+      {% endif %}
+    {% endwith %}
+  </div>
 </body>
 </html>

@@ -2,28 +2,36 @@
 <html>
 <head>
     <title>{{ poll.title }} - Results</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
 </head>
 <body>
+  <div class="results-container">
     <h2>📊 Results for: {{ poll.title }}</h2>
 
     {% if poll.candidates %}
-        <ul style="list-style: none;">
-            {% for candidate in poll.candidates %}
-                <li>
-                    <img src="{{ url_for('static', filename='candidate_images/' + candidate.image) }}" width="80">
-                    <strong>{{ candidate.name }}</strong>: {{ candidate.votes }} vote(s)
-                </li>
-            {% endfor %}
-        </ul>
+      <ul class="candidate-list">
+        {% for candidate in poll.candidates %}
+          <li>
+            <img src="{{ url_for('static', filename='candidate_images/' + candidate.image) }}" alt="{{ candidate.name }}">
+            <strong>{{ candidate.name }}</strong>
+            <span class="candidate-votes">{{ candidate.votes }} vote(s)</span>
+          </li>
+        {% endfor %}
+      </ul>
     {% else %}
-        <p>No candidates found.</p>
+      <p class="no-candidates">No candidates found.</p>
     {% endif %}
 
     {% if session.get('role') == 'admin' %}
+      <div class="back-button">
         <a href="{{ url_for('results_dashboard') }}"><button>Back to All Poll Results</button></a>
+      </div>
     {% else %}
+      <div class="back-button">
         <a href="{{ url_for('available_polls') }}"><button>Back to All Poll Results</button></a>
+      </div>
     {% endif %}
+  </div>
 </body>
+
 </html>

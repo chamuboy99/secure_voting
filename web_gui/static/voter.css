@@ -1,0 +1,245 @@
+/* Base Reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f3f4f6;
+  padding: 2rem 1rem;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+}
+
+.polls-container {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  max-width: 600px;
+  width: 100%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Heading */
+.polls-container h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #1f2937;
+  font-size: 1.75rem;
+}
+
+/* Poll list */
+.polls-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.polls-list li {
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.polls-list b {
+  font-size: 1.1rem;
+  color: #111827;
+}
+
+/* Buttons */
+.button-group {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.button-group form {
+  flex: 1;
+}
+
+.button-group button {
+  width: 100%;
+  background-color: #4f46e5;
+  color: white;
+  padding: 0.6rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.button-group button:hover {
+  background-color: #4338ca;
+}
+
+/* No polls message */
+.no-polls {
+  text-align: center;
+  font-style: italic;
+  color: #6b7280;
+  margin-bottom: 2rem;
+}
+
+/* Logout button */
+.logout-button {
+  display: block;
+  margin: 2rem auto 0;
+  width: 100%;
+  max-width: 200px;
+}
+
+.logout-button button {
+  width: 100%;
+  background-color: #2563eb;
+  color: white;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.logout-button button:hover {
+  background-color: #4338ca;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .button-group {
+    flex-direction: column;
+  }
+
+  .button-group form {
+    width: 100%;
+  }
+}
+
+/*vote*/
+
+.vote-container {
+  background-color: white;
+  max-width: 600px;
+  width: 100%;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.vote-container h2 {
+  color: #1f2937;
+  margin-bottom: 1rem;
+  font-size: 1.75rem;
+}
+
+#timer {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin-bottom: 2rem;
+  color: #dc2626;
+}
+
+form#vote-form {
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+form#vote-form label {
+  display: flex;
+  align-items: center;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+form#vote-form label:hover {
+  background-color: #e0e7ff;
+}
+
+form#vote-form input[type="radio"] {
+  margin-right: 1rem;
+  accent-color: #4f46e5;
+}
+
+form#vote-form img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-right: 1rem;
+}
+
+form#vote-form button[type="submit"] {
+  width: 100%;
+  background-color: #08b30e;
+  color: white;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 1rem;
+}
+
+form#vote-form button:hover {
+  background-color: #37d541;
+}
+
+.vote-container .nav-buttons {
+  display: flex;
+  flex-direction:row;
+  gap: 1rem;
+  margin-top: 3rem;
+}
+
+.vote-container .nav-buttons a {
+  flex: 1 1 100%;
+}
+
+.vote-container .nav-buttons button {
+  width: 100%;
+  background-color: #2563eb;
+  color: white;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.vote-container .nav-buttons button:hover {
+  background-color: #1e40af;
+}
+
+
+/* Responsive */
+@media (max-width: 480px) {
+  form#vote-form label {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  form#vote-form img {
+    margin: 0.5rem 0;
+  }
+
+  .vote-container .nav-buttons a {
+    flex: 1 1 48%;
+  }
+}
