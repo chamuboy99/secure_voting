@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+</head>
+<body>
+
+<form method="POST">
+  <h2>Register to Vote</h2>
+  First Name: <input name="fname" required><br>
+  Last Name: <input name="lname" required><br>
+
+  <label for="reg_suffix">Registration Number:</label>
+  <div class="reg-wrapper">
+    <div class="reg-part">EG /</div>
+    <select name="reg_year" class="reg-select" required>
+      {% for year in range(2005, 2030) %}
+        <option value="{{ year }}">{{ year }}</option>
+      {% endfor %}
+    </select>
+    <div class="reg-part">/</div>
+    <input type="text" name="reg_suffix" maxlength="4" placeholder="xxxx" required class="reg-input">
+  </div>
+
+
+  Password: <input type="password" name="password" required><br>
+  Confirm Password: <input type="password" name="confirm" required><br>
+
+  <button type="submit">Register</button>
+  <a href="/login">Already registered? Login here</a><br>
+</form>
+
+
+
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <script>
+      alert("{{ messages[0] }}");
+    </script>
+  {% endif %}
+{% endwith %}
+
+</body>
+</html>

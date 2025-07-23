@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vote</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<h2>Cast Your Vote</h2>
+<form method="POST">
+  {% for c in candidates %}
+    <div style="margin-bottom: 10px;">
+      <input type="radio" name="candidate" value="{{ c.name }}" required>
+      <img src="{{ url_for('static', filename='candidate_images/' + c.image) }}" width="80">
+      {{ c.name }}
+    </div>
+  {% endfor %}
+  <button type="submit">Submit Vote</button>
+</form>
+<a href="/results"><button>View Results</button></a>
+<a href="/logout" onclick="return confirm('Are you sure you want to logout?')">
+  <button>Logout</button>
+</a>
+
+</body>
+</html>

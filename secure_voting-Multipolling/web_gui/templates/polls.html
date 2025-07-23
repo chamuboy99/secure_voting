@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Available Polls</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='voter.css') }}">
+</head>
+<body>
+    <div class="polls-container">
+        {% if polls %}
+            <h2>Available Polls</h2>
+            <ul class="polls-list">
+                {% for poll in polls %}
+                <li>
+                    <b>{{ poll.title }}</b>
+                    <span>Ends at {{ poll.end_time }}</span>
+                    <div class="button-group">
+                        <form method="get" action="{{ url_for('vote_in_poll', poll_id=poll.id) }}">
+                            <button type="submit">Vote</button>
+                        </form>
+                        <form method="get" action="{{ url_for('poll_results', poll_id=poll.id) }}">
+                            <button type="submit">View Results</button>
+                        </form>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="no-polls">No active polls available.</p>
+        {% endif %}
+
+        <a href="/logout" class="logout-button" onclick="return confirm('Are you sure you want to logout?')">
+            <button>Logout</button>
+        </a>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <script>alert("{{ messages[0] }}");</script>
+            {% endif %}
+        {% endwith %}
+    </div>
+</body>
+</html>

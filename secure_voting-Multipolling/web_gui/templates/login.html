@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+</head>
+<body>
+
+<form method="POST">
+  <h2>Login to Vote</h2>
+  Registration Number: <input name="reg_no" required><br>
+  Password: <input type="password" name="password" required><br>
+  <button type="submit">Login</button>
+  <a href="/register">New? Register here</a><br>
+</form>
+
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <script>
+      alert("{{ messages[0] }}");
+    </script>
+  {% endif %}
+{% endwith %}
+</body>
+</html>
