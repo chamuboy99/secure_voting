@@ -1,0 +1,19 @@
+{
+  "id": "c751bec7",
+  "title": "Study Leave Extension",
+  "published": true,
+  "ended": false,
+  "end_time": "2025-07-29T10:00:00",
+  "candidates": [
+    {
+      "name": "1",
+      "image": "chamuboy.png",
+      "votes": 0
+    },
+    {
+      "name": "2",
+      "image": "chamuboy.png",
+      "votes": 0
+    }
+  ]
+}

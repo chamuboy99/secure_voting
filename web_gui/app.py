@@ -13,13 +13,12 @@ from utils import (
     generate_rsa_keys, save_key, load_key,
     generate_aes_key, aes_encrypt, aes_decrypt,
     rsa_encrypt, rsa_decrypt,
-    sign_message, verify_signature, hashes
+    sign_message, hashes
 )
 from werkzeug.security import generate_password_hash, check_password_hash
-from collections import Counter
 
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime
 
 POLL_DIR = "../polls"
 
@@ -40,14 +39,14 @@ def list_polls():
 app = Flask(__name__)
 app.secret_key = 'secure-voting-secret'
 
-# === Paths ===
+# Paths
 VOTER_DB = "voter_db.json"
 KEYS_DIR = "../keys/"
 VOTES_DIR = "../votes/"
 SERVER_PRIV_KEY = "../keys/server_private.pem"
 SERVER_PUB_KEY = "../keys/server_public.pem"
 
-# === Setup ===
+# Setup
 os.makedirs(KEYS_DIR, exist_ok=True)
 os.makedirs(VOTES_DIR, exist_ok=True)
 
@@ -62,7 +61,7 @@ server_pub = load_key(SERVER_PUB_KEY)
 def home():
     return redirect(url_for('login'))
 
-# === Register ===
+# Register
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -119,7 +118,7 @@ def register():
 
     return render_template('register.html')
 
-# === Login ===
+# Login
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -149,7 +148,7 @@ def login():
 
     return render_template('login.html')
 
-# === Admin ===
+# Admin
 @app.route('/admin')
 def admin_dashboard():
     if session.get('role') != 'admin':
@@ -157,6 +156,7 @@ def admin_dashboard():
 
     return render_template('admin_dashboard.html')
 
+# Create Poll
 @app.route('/admin/create_poll', methods=['GET', 'POST'])
 def create_poll():
     if session.get('role') != 'admin':
@@ -188,6 +188,7 @@ def create_poll():
 
     return render_template('create_poll.html')
 
+# Polls
 @app.route('/polls')
 def available_polls():
     if 'reg_no' not in session:
@@ -208,7 +209,7 @@ def available_polls():
 
     return render_template('polls.html', polls=available)
 
-
+# Edit Poll
 @app.route('/admin/edit_poll/<poll_id>', methods=['GET', 'POST'])
 def edit_poll(poll_id):
     poll = load_poll(poll_id)
@@ -271,7 +272,7 @@ def edit_poll(poll_id):
             return redirect(url_for('admin_dashboard'))
 
         save_poll(poll)
-        return redirect(url_for('edit_poll', poll_id=poll_id))  # ✅ PRG redirect
+        return redirect(url_for('edit_poll', poll_id=poll_id))
 
     return render_template('edit_poll.html', poll=poll)
 
@@ -289,7 +290,7 @@ def vote_in_poll(poll_id):
         return "Poll has ended.", 403
 
     if request.method == 'POST':
-        selected = request.form.get('candidate')  # ✅ Use .get to avoid key errors
+        selected = request.form.get('candidate') 
 
         if not selected:
             return "❌ Please select a candidate before voting.", 400
@@ -304,7 +305,6 @@ def vote_in_poll(poll_id):
         if not os.path.exists(priv_path):
             return "Private key missing for voter."
 
-        # Check for double voting
         voted_path = os.path.join(VOTES_DIR, poll_id, f"{poll_id}_voted.txt")
         os.makedirs(os.path.dirname(voted_path), exist_ok=True)
         if os.path.exists(voted_path):
@@ -313,7 +313,6 @@ def vote_in_poll(poll_id):
                     flash("You have already voted.")
                     return redirect(url_for('available_polls'))
 
-        # Secure vote
         aes_key = generate_aes_key()
         enc_vote = aes_encrypt(selected.encode(), aes_key)
         enc_key = rsa_encrypt(aes_key, server_pub)
@@ -339,7 +338,6 @@ def vote_in_poll(poll_id):
         with open(voted_path, 'a') as f:
             f.write(reg_no + "\n")
 
-        # ✅ Live update the vote count
         for c in poll['candidates']:
             if c['name'] == selected:
                 c['votes'] = c.get('votes', 0) + 1
@@ -350,7 +348,7 @@ def vote_in_poll(poll_id):
 
     return render_template('vote_poll.html', poll=poll)
 
-# === Vote ===
+# Vote
 @app.route('/vote', methods=['GET', 'POST'])
 def vote():
     if 'reg_no' not in session:
@@ -363,7 +361,6 @@ def vote():
     if not os.path.exists(priv_path):
         return "Voter keys not found."
 
-    # Load candidates
     with open("candidates.json", "r") as f:
         candidates = json.load(f)
 
@@ -393,7 +390,7 @@ def vote():
 
     return render_template('vote.html', candidates=candidates)
 
-# === Results ===
+# Results 
 @app.route('/results/<poll_id>')
 def poll_results(poll_id):
     poll = load_poll(poll_id)
@@ -426,7 +423,6 @@ def poll_results(poll_id):
                 print(f"[Error decrypting vote from {file}]: {e}")
                 continue
 
-    # Tally votes securely
     vote_counts = {c['name']: 0 for c in poll['candidates']}
     for vote in all_votes:
         if vote in vote_counts:
@@ -448,6 +444,7 @@ def results_dashboard():
 
     return render_template('results_dashboard.html', polls=all_polls)
 
+# Logout
 @app.route('/logout')
 def logout():
     session.clear()

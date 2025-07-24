@@ -1,0 +1,29 @@
+{
+  "id": "5170e852",
+  "title": "BatchRep Selection",
+  "published": true,
+  "ended": false,
+  "end_time": "2025-07-30T21:00:00",
+  "candidates": [
+    {
+      "name": "Chamuditha",
+      "image": "3.jpeg",
+      "votes": 2
+    },
+    {
+      "name": "Salinda",
+      "image": "1.jpeg",
+      "votes": 0
+    },
+    {
+      "name": "Savindya",
+      "image": "2.jpeg",
+      "votes": 0
+    },
+    {
+      "name": "Ranga",
+      "image": "4.jpeg",
+      "votes": 0
+    }
+  ]
+}
