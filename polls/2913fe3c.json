@@ -2,17 +2,17 @@
   "id": "2913fe3c",
   "title": "Election2025",
   "published": true,
-  "ended": true,
-  "end_time": "2025-07-19T15:30:00",
+  "ended": false,
+  "end_time": "2025-10-30T21:30:00",
   "candidates": [
     {
-      "name": "Chamuditha Tennakoon",
-      "image": "chamuboy.png",
+      "name": "Chamuboy",
+      "image": "WhatsApp_Image_2024-09-11_at_21.14.15.jpeg",
       "votes": 0
     },
     {
-      "name": "Chamu",
-      "image": "ChatGPT_Image_Apr_1_2025_08_48_30_PM.png",
+      "name": "Maheshboy",
+      "image": "IMG_0003.jpg",
       "votes": 0
     }
   ]
